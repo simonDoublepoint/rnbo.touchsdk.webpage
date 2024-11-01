@@ -1,8 +1,5 @@
-
-
-
 async function setup() {
-    const patchExportURL = "export/runglerweb.json";
+    const patchExportURL = "export/oscillasonicwatchweb.json";
 
     // Create AudioContext
     const WAContext = window.AudioContext || window.webkitAudioContext;
@@ -20,8 +17,6 @@ async function setup() {
     
         if (!window.RNBO) {
             // Load RNBO script dynamically
-            // Note that you can skip this by knowing the RNBO version of your patch
-            // beforehand and just include it using a <script> tag
             await loadRNBOScript(patcher.desc.meta.rnboversion);
         }
 
@@ -50,7 +45,7 @@ async function setup() {
         const dependenciesResponse = await fetch("export/dependencies.json");
         dependencies = await dependenciesResponse.json();
 
-        // Prepend "export" to any file dependenciies
+        // Prepend "export" to any file dependencies
         dependencies = dependencies.map(d => d.file ? Object.assign({}, d, { file: "export/" + d.file }) : d);
     } catch (e) {}
 
@@ -65,6 +60,192 @@ async function setup() {
             throw err;
         }
         return;
+    }
+
+    const watch = new TouchSDK.Watch();
+    const connectButton = watch.createConnectButton();
+    document.querySelector('.connectWatch').appendChild(connectButton);
+
+
+
+    const toggleTapButton = document.createElement('button');
+    toggleTapButton.innerText = 'Toggle Tap';
+    toggleTapButton.classList.add('toggle-tap-button');
+
+    const toggleButtonState = (button) => {
+        document.querySelectorAll('.toggled').forEach(btn => {
+            if (btn !== button) {
+                btn.classList.remove('toggled');
+            }
+        });
+        button.classList.toggle('toggled');
+    };
+
+    toggleTapButton.addEventListener('click', () => {
+        const tapParam = device.parametersById.get("TapReverb");
+        if (tapParam) {
+            tapParam.value = tapParam.value === 0 ? initialValues["TapReverb"] : 0;
+            console.log(`TapReverb value changed to: ${tapParam.value}`);
+            toggleButtonState(toggleTapButton);
+        }
+    });
+    
+    document.querySelector('#rnbo-parameter-sliders').appendChild(toggleTapButton);
+
+    const muteButton = document.createElement('button');
+    muteButton.innerText = 'Mute';
+    muteButton.classList.add('mute-button');
+    muteButton.addEventListener('click', () => {
+        const gainParam = device.parametersById.get("Gain");
+        if (gainParam) {
+            gainParam.value = gainParam.value === 0 ? initialValues["Gain"] : 0;
+            console.log(`Gain value changed to: ${gainParam.value}`);
+            toggleButtonState(muteButton);
+        }
+    });
+
+    document.querySelector('#rnbo-parameter-sliders').appendChild(muteButton);
+
+    // Set initial default values
+    const initialValues = {
+        "accelerationX": 0.5,
+        "accelerationY": 0.2,
+        "runglerMode": 1.0,
+        "runglerThresh": 0.8,
+        "runglerSize": 512.0,
+        "TapReverb": 0.5,
+        "yaw": 0.6,
+        "Gain": 0.6,
+        "filterReso": 0.5,
+        "Reso": 0.5,
+        "roll": 0.4,
+        "filterComp": 0.1,
+        "pitch": 0.4,
+        "AgularVelocity": 0.7,
+        "filtertype": 1.0
+    };
+
+    for (const [paramId, value] of Object.entries(initialValues)) {
+        const param = device.parametersById.get(paramId);
+        if (param) {
+            param.value = value;
+        }
+    }
+    
+
+    if (device) {
+        console.log("Device is accessible:", device);
+    
+        let tapCount = 0;
+        let buttonPressCount = 0;
+        let rotaryCount = 0;
+        let direction = '';
+        let normalizer = 20;
+
+        watch.addEventListener('tap', () => {
+            tapCount++;
+            console.log(`tap event, count: ${tapCount}`);
+
+            const tapReverb = device.parametersById.get("TapReverb");
+            if (tapReverb) {
+                if (!toggleTapButton.classList.contains('toggled')) {
+                    tapReverb.value = 0;
+                } else {
+                    tapReverb.value = tapReverb.value === 0 ? 1 : 0;
+                }
+                console.log(`TapReverb value changed to: ${tapReverb.value}`);
+            }
+        });
+        watch.addEventListener('button', () => {
+            buttonPressCount++;
+            console.log(`button event, count: ${buttonPressCount}`);
+        });
+    
+        watch.addEventListener('rotary', (event) => {
+            const step = event.detail;
+            if (step !== 0) {
+                rotaryCount++;
+                direction = step === -1 ? 'right' : 'left';
+            }
+            console.log(`rotaryCount: ${rotaryCount}, Direction: ${direction}, Step: ${step}`);
+
+            const pitch = device.parametersById.get("pitch");
+
+            //if google pixel watch
+            // if (pitch) {
+            //     if (direction === 'right') {
+            //         pitch.value += 0.01;
+            //         if (pitch.value >= 1) {
+            //             direction = 'left';
+            //         }
+            //     } else {
+            //         pitch.value -= 0.01;
+            //         if (pitch.value <= 0) {
+            //             direction = 'right';
+            //         }
+            //     }
+            // }
+        });
+    
+        watch.addEventListener('connectionstatuschanged', (event) => {
+            const status = event.detail;
+            if (status !== null) {
+                console.log(`connection status changed: ${status}`);
+            } else {
+                console.error('Event detail is null');
+            }
+        });
+    
+        watch.addEventListener('angularvelocitychanged', (event) => {
+            const { x, y, z } = event.detail || {};
+            if (x !== undefined && y !== undefined && z !== undefined) {
+                //console.log(`angular velocity changed: x = ${x}, y = ${y}, z = ${z}`);
+            }
+            const angVel = device.parametersById.get("AgularVelocity"); 
+            const yaw = device.parametersById.get("yaw"); 
+            //if (angVel) angVel.value = (x + y + z);
+            if (yaw) {
+                const currentYawValue = yaw.value || 0;
+                const newYawValue = currentYawValue + z / (normalizer * 5);
+                yaw.value = Math.max(0, Math.min(1, newYawValue)); // Ensure yaw.value stays between 0 and 1
+            }
+            if (angVel) {                
+                angVel.value = Math.abs(z) / (normalizer/5);
+            }
+        });
+    
+        watch.addEventListener('accelerationchanged', (event) => {
+            const { x, y, z } = event.detail || {};
+            if (x !== undefined && y !== undefined && z !== undefined) {
+                //console.log(`acceleration changed: x = ${x}, y = ${y}, z = ${z}`);
+            }    
+            const accX = device.parametersById.get("accelerationX");    
+            const accY = device.parametersById.get("accelerationY");
+            if (accX) accX.value = x/normalizer; 
+            if (accY) accY.value = y/normalizer; 
+        });
+    
+        watch.addEventListener('probability', (event) => {
+            const probability = event.detail;
+            if (probability !== null) {
+                console.log(`probability event: ${probability}`);
+            }
+        });
+    
+        watch.addEventListener('gravityvectorchanged', (event) => {
+            const { x, y, z } = event.detail || {};
+            if (x !== undefined && y !== undefined && z !== undefined) {
+                //console.log(`gravity vector changed: x = ${x}, y = ${y}, z = ${z}`);
+            }
+            const roll = device.parametersById.get("roll");   
+            const pitch = device.parametersById.get("pitch");   
+
+            if (roll) roll.value = 0.5+z/normalizer;  
+            if(pitch) pitch.value = 0.5+z/normalizer; 
+        });
+  
+    } else {
+        console.error("Device is not yet initialized.");
     }
 
     // (Optional) Load the samples
@@ -96,82 +277,6 @@ async function setup() {
         context.resume();
     }
 
-    // Set up TouchSDK
-    const watch = new TouchSDK.Watch();
-    const connectButton = watch.createConnectButton();
-    document.querySelector('.connectWatch').appendChild(connectButton);
-
-    watch.addEventListener('tap', () => {
-        tapCount++;
-        console.log(`tap event, count: ${tapCount}`);
-    });
-
-    watch.addEventListener('button', () => {
-        buttonPressCount++;
-        console.log(`button event, count: ${buttonPressCount}`);
-    });
-    
-    watch.addEventListener('rotary', (event) => {
-        const step = event.detail;				
-        if (step === -1) {
-            rotaryCount++;
-            direction = 'right';
-        } else {
-            rotaryCount--;
-            direction = 'left';
-        }
-        console.log(`rotaryCount: ${rotaryCount}, Direction: ${direction}, Step: ${step}`);
-    });
-
-    watch.addEventListener('connectionstatuschanged', (event) => {
-        if (event.detail) {
-            const status = event.detail;
-            console.log(`connection status changed: ${status}`);
-        } else {
-            console.error('Event detail is null');
-        }
-    });			
-    watch.addEventListener('angularvelocitychanged', (event) => {
-        if (event.detail) {
-            const { x, y, z } = event.detail;
-            console.log(`angular velocity changed: x = ${x}, y = ${y}, z = ${z}`);
-        }
-    });    
-
-    watch.addEventListener('accelerationchanged', (event) => {
-        if (event.detail) {
-            const { x, y, z } = event.detail;
-            console.log(`acceleration changed: x = ${x}, y = ${y}, z = ${z}`);
-        }
-    });
-
-    watch.addEventListener('probability', (event) => {
-        if (event.detail) {
-            const probability = event.detail;					
-            console.log(`probability event: ${probability}`);
-        }
-    });	  
-
-    watch.addEventListener('gravityvectorchanged', (event) => {
-        if (event.detail) {
-            const { x, y, z } = event.detail;
-            console.log(`gravity vector changed: x = ${x}, y = ${y}, z = ${z}`);
-        }
-    });
-
-    watch.addEventListener('accelerationchanged', (event) => {
-        const { x, y, z } = event.detail;
-        console.log(x, y, z);
-    
-        const in1 = device.parametersById.get("in1");
-        const in2 = device.parametersById.get("in2");
-        const in3 = device.parametersById.get("in3");
-
-        if (in1) in1.value = x; // Set the parameter value to x
-        if (in2) in2.value = y; // Set the parameter value to y
-        if (in3) in3.value = z; // Set the parameter value to z
-    
-    });
     // Skip if you're not using guardrails.js
     if (typeof guardrails === "function")
         guardrails();
@@ -379,7 +484,7 @@ function makeMIDIKeyboard(device) {
         key.addEventListener("pointerdown", () => {
             let midiChannel = 0;
 
-            // Format a MIDI message paylaod, this constructs a MIDI on event
+            // Format a MIDI message payload, this constructs a MIDI on event
             let noteOnMessage = [
                 144 + midiChannel, // Code for a note on: 10010000 & midi channel (0-15)
                 note, // MIDI Note

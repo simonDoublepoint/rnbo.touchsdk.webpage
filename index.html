@@ -5,20 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="theme-color" content="#000000">
     <meta name="rnbo-version" content="1.0.0-alpha.5">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style/style.css">
-    <script src="https://cdn.jsdelivr.net/npm/touch-sdk@0.5.2/dist/main.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/touch-sdk@0.6.0/dist/main.js"></script>
     
     <title>RNBO Web Export</title>
 </head>
 
 <body>
-    <div class="connectWatch"></div>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <svg id="background" width="100%" height="100%"></svg>
+    <div id="grid"></div>
     <div id="rnbo-root">
 		<div>
-			<h1 id="patcher-title">Unnamed patcher</h1>
+            <h1>Oscilla</h1>      
+            <h3 id="patcher-title" style="display: none;">Unnamed patcher</h3>      
 		</div>
+        <div id="rnbo-parameter-sliders">
+            <div class="connectWatch"></div>
+            <em id="no-param-label">No parameters</em>
+
+        </div>
         <div id="rnbo-clickable-keyboard">
             <h2>MIDI Keyboard</h2>
             <em id="no-midi-label">No MIDI input</em>
@@ -47,10 +54,7 @@
 			<em id="no-presets-label">No presets defined</em>
 			<select id="preset-select"></select>
 		</div>
-        <div id="rnbo-parameter-sliders">
-            <h2>Parameters</h2>
-            <em id="no-param-label">No parameters</em>
-        </div>
+    
     </div>
 
     <!-- Load the script that creates the RNBO device  -->

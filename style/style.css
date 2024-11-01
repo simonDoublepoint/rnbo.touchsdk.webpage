@@ -1,54 +1,192 @@
 html, body {
     margin: 0;
     padding: 0;
+    font-family: 'Orbitron', sans-serif;
+    background-color: #000;
+    color: #00fff6;
+    position: relative;   
 }
+
+@media (max-width: 768px) {
+    html, body {
+        padding-bottom: 5em;
+    }
+}
+
+
 #rnbo-root {
-    height: 100vh;
-    width: 100vw;
-}
-#background {
-    position: absolute;
-    z-index: -1;
-}
-
-h2, em {
-    width: 100%;
-}
-
-#rnbo-root {
-    margin: auto;
-    max-width: 540px;
-}
-
-#rnbo-clickable-keyboard {
+    height: 100%;    
+    margin-top: -100px;
     display: flex;
-    flex-wrap: wrap;
-}
-
-#rnbo-clickable-keyboard > div {
-    margin: 2px;
-    border: solid black 1px;
-    min-height: 50px;
-    flex-grow: 1;
-    display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+    box-sizing: border-box;
+    padding-bottom: 5em;
+    margin-bottom: 5em; /* Added margin to bottom */
+   
 }
 
-#rnbo-clickable-keyboard > div.clicked {
-    background: #222222;
-    color: #dddddd;
+h1, h2, h3, h4 {
+    margin: 0.2em 0; /* Reduced top margin */
+    text-shadow: 0 0 10px #00fff6;
+}
+
+h1 {
+    font-size: 4em !important;
+}
+
+h2 {
+    font-size: 1.75em;
+}
+
+h3 {
+    font-size: 1em;
+}
+
+h4 {
+    font-size: 1.25em;
+}
+
+
+#rnbo-clickable-keyboard,
+#rnbo-inports,
+#rnbo-console, 
+#rnbo-presets {
+    display: none;
 }
 
 #rnbo-parameter-sliders {
     display: flex;
     flex-direction: column;
+    align-items: center;
+    max-height: 80vh;
+    padding: 1em;
+    /* overflow-y: auto; */
 }
 
 #rnbo-parameter-sliders > div {
     display: flex;
+    align-items: center;
+    justify-content: center; /* Center buttons horizontally */
+    width: 100%;
+    margin: 1em 0; /* Increased margin for more spacing between sliders */
 }
 
-#rnbo-parameter-sliders > div > input:first-of-type {
+input[type="range"] {
     flex-grow: 1;
+    margin: 0 0.5em;
+    appearance: none;
+    height: 8px;
+    background: #333;
+    border-radius: 5px;
+    outline: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    appearance: none;
+    width: 30px; /* 1.5 times the original width */
+    height: 30px; /* 1.5 times the original height */
+    background: #00fff6;
+    border-radius: 50%;
+    box-shadow: 0 0 5px #00fff6; /* Added box-shadow for a glowing effect */
+    cursor: pointer;
+}
+
+input[type="range"]:hover::-webkit-slider-thumb {
+    background: linear-gradient(135deg, #ff90ff, #ff66ff); /* Shiny pink gradient */
+    transition: background 0.1s ease-in-out; /* Quick transition */
+    box-shadow: 0 0 20px #ff66ff; /* Big box shadow */
+}
+
+input[type="range"]:active::-webkit-slider-thumb {
+    background: linear-gradient(135deg, #ff90ff, #ff66ff); /* Shiny pink gradient */
+    transition: background 0.1s ease-in-out; /* Quick transition */
+    box-shadow: 0 0 20px #ff66ff; /* Big box shadow */
+}
+
+input[type="text"] {
+    width: 50px;
+    margin-left: 0.5em;
+    text-align: center;
+    background: #000;
+    color: #00fff6;
+    border: 1px solid #00fff6;
+    border-radius: 5px;
+}
+
+button {
+    margin-top: 1em;
+    padding: 0.5em 1em; /* Adjusted padding for better touch targets */
+    font-size: 1em; /* Increased font size for readability */
+    background: linear-gradient(135deg, #00fff6, #b3ffff); /* Shiny light blue gradient */
+    color: #000;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s, box-shadow 0.3s;
+    box-shadow: 0 0 10px #00fff6; /* Light blue shadow for shiny effect */
+}
+
+@media (max-width: 767px) {
+    button {
+        padding: 0.8em 1.5em; /* Larger padding for mobile */
+        font-size: 1.2em; /* Larger font size for mobile */
+    }
+}
+
+button:hover {
+    background: linear-gradient(135deg, #ff66ff, #ff99ff); /* Brighter pink gradient */
+    box-shadow: 0 0 10px #ff99ff; /* Brighter pink shadow */
+}
+
+button:active, button.toggled {
+    background: linear-gradient(135deg, #ff99ff, #ff66ff) !important; /* Brighter pink gradient */
+    box-shadow: 0 0 15px #ff99ff; /* Brighter pink shadow */
+}
+
+@media (max-width: 767px) {
+    h1, h2 {
+        font-size: 1.2em;
+    }
+    button, input[type="text"] {
+        font-size: 1.05em; /* 1.5x original font size */
+        padding: 0.6em 1.2em; /* 1.5x original padding */
+    }
+}
+
+#grid {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 150%;
+    background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 10px,
+        rgba(0, 255, 246, 0.1) 10px,
+        rgba(0, 255, 246, 0.1) 11px
+    ),
+    repeating-linear-gradient(
+        90deg,
+        transparent,
+        transparent 10px,
+        rgba(0, 255, 246, 0.1) 10px,
+        rgba(0, 255, 246, 0.1) 11px
+    );
+    z-index: 0;
+    animation: moveGrid 5s linear infinite;
+}
+
+@keyframes moveGrid {
+    from {
+        background-position: 0 0;
+    }
+    to {
+        background-position: 100px 100px;
+    }
 }
