@@ -99,32 +99,78 @@ async function setup() {
     // Set up TouchSDK
     const watch = new TouchSDK.Watch();
     const connectButton = watch.createConnectButton();
-    document.body.appendChild(connectButton);
+    document.querySelector('.connectWatch').appendChild(connectButton);
 
+    watch.addEventListener('tap', () => {
+        tapCount++;
+        console.log(`tap event, count: ${tapCount}`);
+    });
+
+    watch.addEventListener('button', () => {
+        buttonPressCount++;
+        console.log(`button event, count: ${buttonPressCount}`);
+    });
     
+    watch.addEventListener('rotary', (event) => {
+        const step = event.detail;				
+        if (step === -1) {
+            rotaryCount++;
+            direction = 'right';
+        } else {
+            rotaryCount--;
+            direction = 'left';
+        }
+        console.log(`rotaryCount: ${rotaryCount}, Direction: ${direction}, Step: ${step}`);
+    });
+
+    watch.addEventListener('connectionstatuschanged', (event) => {
+        if (event.detail) {
+            const status = event.detail;
+            console.log(`connection status changed: ${status}`);
+        } else {
+            console.error('Event detail is null');
+        }
+    });			
+    watch.addEventListener('angularvelocitychanged', (event) => {
+        if (event.detail) {
+            const { x, y, z } = event.detail;
+            console.log(`angular velocity changed: x = ${x}, y = ${y}, z = ${z}`);
+        }
+    });    
+
+    watch.addEventListener('accelerationchanged', (event) => {
+        if (event.detail) {
+            const { x, y, z } = event.detail;
+            console.log(`acceleration changed: x = ${x}, y = ${y}, z = ${z}`);
+        }
+    });
+
+    watch.addEventListener('probability', (event) => {
+        if (event.detail) {
+            const probability = event.detail;					
+            console.log(`probability event: ${probability}`);
+        }
+    });	  
+
+    watch.addEventListener('gravityvectorchanged', (event) => {
+        if (event.detail) {
+            const { x, y, z } = event.detail;
+            console.log(`gravity vector changed: x = ${x}, y = ${y}, z = ${z}`);
+        }
+    });
 
     watch.addEventListener('accelerationchanged', (event) => {
         const { x, y, z } = event.detail;
         console.log(x, y, z);
     
-        // Assuming 'device' is your RNBO device object
-        const parameter = device.parametersById.get("in1");
         const in1 = device.parametersById.get("in1");
         const in2 = device.parametersById.get("in2");
         const in3 = device.parametersById.get("in3");
-        const in4 = device.parametersById.get("in4");
-        
-        if (parameter) {
-            const in1 = device.parametersById.get("in1");
-            const in2 = device.parametersById.get("in2");
-            const in3 = device.parametersById.get("in3");
 
-            if (in1) in1.value = x; // Set the parameter value to x
-            if (in2) in2.value = y; // Set the parameter value to y
-            if (in3) in3.value = z; // Set the parameter value to z
-        } else {
-            console.error("Parameters 'in1', 'in2', or 'in3' not found");
-        }
+        if (in1) in1.value = x; // Set the parameter value to x
+        if (in2) in2.value = y; // Set the parameter value to y
+        if (in3) in3.value = z; // Set the parameter value to z
+    
     });
     // Skip if you're not using guardrails.js
     if (typeof guardrails === "function")
