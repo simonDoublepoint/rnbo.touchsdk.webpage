@@ -1,3 +1,6 @@
+
+
+
 async function setup() {
     const patchExportURL = "export/runglerweb.json";
 
@@ -8,7 +11,7 @@ async function setup() {
     // Create gain node and connect it to audio output
     const outputNode = context.createGain();
     outputNode.connect(context.destination);
-    
+
     // Fetch the exported patcher
     let response, patcher;
     try {
@@ -93,6 +96,36 @@ async function setup() {
         context.resume();
     }
 
+    // Set up TouchSDK
+    const watch = new TouchSDK.Watch();
+    const connectButton = watch.createConnectButton();
+    document.body.appendChild(connectButton);
+
+    
+
+    watch.addEventListener('accelerationchanged', (event) => {
+        const { x, y, z } = event.detail;
+        console.log(x, y, z);
+    
+        // Assuming 'device' is your RNBO device object
+        const parameter = device.parametersById.get("in1");
+        const in1 = device.parametersById.get("in1");
+        const in2 = device.parametersById.get("in2");
+        const in3 = device.parametersById.get("in3");
+        const in4 = device.parametersById.get("in4");
+        
+        if (parameter) {
+            const in1 = device.parametersById.get("in1");
+            const in2 = device.parametersById.get("in2");
+            const in3 = device.parametersById.get("in3");
+
+            if (in1) in1.value = x; // Set the parameter value to x
+            if (in2) in2.value = y; // Set the parameter value to y
+            if (in3) in3.value = z; // Set the parameter value to z
+        } else {
+            console.error("Parameters 'in1', 'in2', or 'in3' not found");
+        }
+    });
     // Skip if you're not using guardrails.js
     if (typeof guardrails === "function")
         guardrails();
